@@ -1,0 +1,42 @@
+app = "usehub-backend"
+primary_region = "ams"
+
+[build]
+  dockerfile = "backend/Dockerfile"
+  build_target = "production"
+
+[deploy]
+  release_command = "alembic upgrade head && python app/db/seed.py"
+
+[env]
+  APP_ENV = "production"
+  PORT = "8000"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8000
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.http_checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "get"
+    path = "/api/v1/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
