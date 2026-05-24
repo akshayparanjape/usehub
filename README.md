@@ -52,6 +52,23 @@ npm run dev                    # http://localhost:3000
 
 Add credentials to `backend/.env`.
 
+### Dev login (no OAuth required)
+
+While setting up OAuth, you can sign in with a local dev account:
+
+- Open `http://localhost:3000/login` and use the **Development login** form (shown only in development mode)
+- Username: `max` — Password: `mustermann`
+
+Or directly via curl:
+
+```bash
+curl -c cookies.txt -X POST http://localhost:8000/api/v1/auth/login/email \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"max","password":"mustermann"}'
+```
+
+This endpoint returns **404** in production (`APP_ENV=production`). Credentials can be overridden via `DEV_LOGIN_USERNAME` / `DEV_LOGIN_PASSWORD` in `backend/.env`.
+
 ## Project Structure
 
 ```

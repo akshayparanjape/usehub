@@ -4,6 +4,7 @@ import secrets
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -11,7 +12,7 @@ from app.db.models.user import User
 from app.db.redis import get_redis_client
 from app.db.session import get_db
 from app.modules.auth.dependencies import get_current_user
-from app.modules.auth.service import upsert_oauth_user
+from app.modules.auth.service import get_or_create_dev_user, upsert_oauth_user
 from app.modules.auth.session import create_session, delete_session
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -41,6 +42,51 @@ PROVIDERS = {
 
 def _callback_url(provider: str) -> str:
     return f"{settings.frontend_url}/api/auth/callback/{provider}"
+
+
+class DevLoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+@router.post("/login/email")
+async def dev_login(
+    body: DevLoginRequest,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    if settings.app_env == "production":
+        raise HTTPException(status_code=404, detail="Not found")
+
+    ok_user = secrets.compare_digest(
+        body.username.encode(), settings.dev_login_username.encode()
+    )
+    ok_pass = secrets.compare_digest(
+        body.password.encode(), settings.dev_login_password.encode()
+    )
+    if not (ok_user and ok_pass):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    user = await get_or_create_dev_user(
+        db,
+        handle=settings.dev_login_username,
+        name="Max",
+        email="max@dev.local",
+    )
+    redis = get_redis_client()
+    session_id = await create_session(redis, user.id)
+
+    is_prod = settings.app_env == "production"
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=session_id,
+        max_age=settings.session_ttl_seconds,
+        httponly=True,
+        secure=is_prod,
+        samesite="lax",
+        path="/",
+    )
+    return {"handle": user.handle}
 
 
 @router.get("/{provider}")

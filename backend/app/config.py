@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     storage_bucket: str = "usehub"
     storage_public_url: str = "http://localhost:9000/usehub"
 
+    # Dev login (non-production only)
+    dev_login_username: str = "max"
+    dev_login_password: str = "mustermann"
+
     # Sentry
     sentry_dsn: str = ""
 

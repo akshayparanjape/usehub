@@ -53,6 +53,11 @@ export const auth = {
   logout: () => request<void>("/auth/logout", { method: "POST" }),
   loginUrl: (provider: "google" | "github") =>
     `${API_BASE}/api/v1/auth/${provider}`,
+  devLogin: (username: string, password: string) =>
+    request<{ handle: string }>("/auth/login/email", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────

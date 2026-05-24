@@ -74,13 +74,18 @@ app = FastAPI(
 
 # ── Middleware ─────────────────────────────────────────────────────────────────
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+_cors_kwargs: dict = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+if settings.app_env == "development":
+    # Next.js may use 3001, 3002, etc. when 3000 is taken
+    _cors_kwargs["allow_origin_regex"] = r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+else:
+    _cors_kwargs["allow_origins"] = settings.allowed_origins
+
+app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
 app.middleware("http")(input_size_middleware)
 app.middleware("http")(rate_limit_middleware)

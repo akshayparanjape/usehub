@@ -24,6 +24,9 @@ async def _check_limit(redis: Redis, key: str, limit: int, window: int = 3600) -
 
 
 async def rate_limit_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
     redis = get_redis_client()
     method = request.method
 

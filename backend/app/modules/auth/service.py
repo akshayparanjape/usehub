@@ -68,6 +68,25 @@ async def upsert_oauth_user(
     return user
 
 
+async def get_or_create_dev_user(
+    db: AsyncSession,
+    handle: str,
+    name: str,
+    email: str,
+) -> User:
+    result = await db.execute(select(User).where(User.handle == handle))
+    user = result.scalar_one_or_none()
+    if user:
+        return user
+    user = User(id=new_uuid(), email=email, handle=handle, name=name)
+    db.add(user)
+    await db.flush()
+    profile = Profile(user_id=user.id)
+    db.add(profile)
+    await db.flush()
+    return user
+
+
 async def _generate_handle(db: AsyncSession, name: str) -> str:
     """Generate a unique handle from the user's name."""
     from slugify import slugify

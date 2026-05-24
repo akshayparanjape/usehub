@@ -1,18 +1,47 @@
 "use client";
 
-import { auth } from "@/lib/api";
+import { auth, ApiError } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const router = useRouter();
+  const isDev = process.env.NODE_ENV === "development";
+
+  const [username, setUsername] = useState("max");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!loading && user) router.replace("/feed");
   }, [user, loading, router]);
+
+  async function handleDevLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await auth.devLogin(username, password);
+      await refresh();
+      router.replace("/feed");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else if (err instanceof TypeError) {
+        setError(
+          "Cannot reach the API. Is the backend running on http://localhost:8000?",
+        );
+      } else {
+        setError("Login failed");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-8">
@@ -59,6 +88,45 @@ export default function LoginPage() {
           </svg>
           Continue with GitHub
         </a>
+
+        {isDev && (
+          <>
+            <div className="flex items-center gap-3 my-1">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground">Development login</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            <form onSubmit={handleDevLogin} className="flex flex-col gap-2">
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              {error && (
+                <p className="text-xs text-destructive">{error}</p>
+              )}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex items-center justify-center rounded-md border bg-background px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-accent transition-colors disabled:opacity-50"
+              >
+                {submitting ? "Signing in…" : "Sign in"}
+              </button>
+            </form>
+          </>
+        )}
       </div>
 
       <p className="text-xs text-muted-foreground max-w-xs text-center">
