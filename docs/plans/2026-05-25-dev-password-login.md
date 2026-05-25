@@ -25,6 +25,7 @@ Add `POST /api/v1/auth/login/email` that compares credentials to env-configured 
 
 - Credentials stored in env settings, not the database — no `password` column needed, no DB migration
 - `secrets.compare_digest` on encoded strings to avoid timing attacks
-- Route must be registered **before** `GET /{provider}` to avoid FastAPI routing ambiguity
+- Routes must be registered **before** `GET /{provider}`: `/login/email`, `/me`, and `/logout` (otherwise `/me` is treated as an OAuth provider and returns "Unknown provider")
+- [x] Fix: move `GET /auth/me` above `GET /auth/{provider}` (2026-05-25)
 - Tests mock `get_or_create_dev_user` and `create_session` so they run without Postgres/Redis
 - Endpoint is 404 in production; safe to leave deployed

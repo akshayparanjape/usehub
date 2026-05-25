@@ -52,3 +52,15 @@ async def test_dev_login_invalid_credentials():
             json={"username": "max", "password": "wrong"},
         )
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_auth_me_route_not_oauth_provider():
+    """GET /auth/me must not be captured by GET /auth/{provider}."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/api/v1/auth/me")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated"
+

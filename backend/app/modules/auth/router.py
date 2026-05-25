@@ -89,6 +89,31 @@ async def dev_login(
     return {"handle": user.handle}
 
 
+@router.get("/me")
+async def me(current_user: User = Depends(get_current_user)) -> dict:
+    return {
+        "id": current_user.id,
+        "handle": current_user.handle,
+        "name": current_user.name,
+        "email": current_user.email,
+        "avatar_url": current_user.avatar_url,
+        "followers_count": current_user.followers_count,
+        "following_count": current_user.following_count,
+    }
+
+
+@router.post("/logout")
+async def logout(
+    response: Response,
+    session_token: str | None = Cookie(default=None, alias="usehub_session"),
+) -> dict:
+    if session_token:
+        redis = get_redis_client()
+        await delete_session(redis, session_token)
+    response.delete_cookie(settings.session_cookie_name, path="/")
+    return {"ok": True}
+
+
 @router.get("/{provider}")
 async def oauth_redirect(provider: str) -> Response:
     if provider not in PROVIDERS:
@@ -182,31 +207,6 @@ async def oauth_callback(
         path="/",
     )
     return {"handle": user.handle}
-
-
-@router.post("/logout")
-async def logout(
-    response: Response,
-    session_token: str | None = Cookie(default=None, alias="usehub_session"),
-) -> dict:
-    if session_token:
-        redis = get_redis_client()
-        await delete_session(redis, session_token)
-    response.delete_cookie(settings.session_cookie_name, path="/")
-    return {"ok": True}
-
-
-@router.get("/me")
-async def me(current_user: User = Depends(get_current_user)) -> dict:
-    return {
-        "id": current_user.id,
-        "handle": current_user.handle,
-        "name": current_user.name,
-        "email": current_user.email,
-        "avatar_url": current_user.avatar_url,
-        "followers_count": current_user.followers_count,
-        "following_count": current_user.following_count,
-    }
 
 
 def _extract_userinfo(provider: str, info: dict) -> tuple[str, str, str | None, str]:
