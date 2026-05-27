@@ -128,3 +128,27 @@ See [docs/plans/2026-05-23-system-architecture.md](docs/plans/2026-05-23-system-
 cd backend
 pytest -v
 ```
+
+Tests mock Redis and the database session, so no live services are needed to run the unit/ASGI test suite.
+
+## CI / Branch protection
+
+The repository uses GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) with three required jobs:
+
+| Job | What it checks |
+|-----|----------------|
+| `Backend — Lint` | Ruff lint + format |
+| `Backend — Test` | `pytest -v` (mocked Redis, real Postgres/Redis service containers in CI) |
+| `Frontend — Build` | `npm run lint` + `next build` |
+
+Both PR-to-`main` and direct pushes to `main` trigger all three jobs. Runs on the same branch/PR are automatically cancelled when a newer commit is pushed.
+
+### Enable branch protection on GitHub
+
+1. Go to **Settings → Branches → Add rule** for `main`.
+2. Enable **Require a pull request before merging**.
+3. Enable **Require status checks to pass before merging**.
+4. Add required checks: `Backend — Lint`, `Backend — Test`, `Frontend — Build`.
+5. Optionally enable **Require branches to be up to date before merging**.
+
+This ensures no commit reaches `main` unless all three CI jobs pass.

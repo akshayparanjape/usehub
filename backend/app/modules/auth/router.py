@@ -58,12 +58,8 @@ async def dev_login(
     if settings.app_env == "production":
         raise HTTPException(status_code=404, detail="Not found")
 
-    ok_user = secrets.compare_digest(
-        body.username.encode(), settings.dev_login_username.encode()
-    )
-    ok_pass = secrets.compare_digest(
-        body.password.encode(), settings.dev_login_password.encode()
-    )
+    ok_user = secrets.compare_digest(body.username.encode(), settings.dev_login_username.encode())
+    ok_pass = secrets.compare_digest(body.password.encode(), settings.dev_login_password.encode())
     if not (ok_user and ok_pass):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
