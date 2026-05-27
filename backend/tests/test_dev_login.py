@@ -30,9 +30,7 @@ async def test_dev_login_success():
             return_value="test-session-id",
         ),
     ):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/auth/login/email",
                 json={"username": "max", "password": "mustermann"},
@@ -44,9 +42,7 @@ async def test_dev_login_success():
 
 @pytest.mark.asyncio
 async def test_dev_login_invalid_credentials():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/auth/login/email",
             json={"username": "max", "password": "wrong"},
@@ -57,10 +53,7 @@ async def test_dev_login_invalid_credentials():
 @pytest.mark.asyncio
 async def test_auth_me_route_not_oauth_provider():
     """GET /auth/me must not be captured by GET /auth/{provider}."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/auth/me")
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
-
