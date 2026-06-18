@@ -6,7 +6,9 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
 
   if (!code || !state) {
-    return NextResponse.redirect(new URL("/login?error=no_code", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("error", "no_code");
+    return NextResponse.redirect(loginUrl);
   }
 
   try {
@@ -18,10 +20,13 @@ export async function GET(request: NextRequest) {
     );
 
     if (response.ok) {
-      const setCookie = response.headers.get("set-cookie");
+      const setCookies = response.headers.getSetCookie();
+      if (setCookies.length === 0) {
+        return NextResponse.redirect(new URL("/login?error=missing_cookie", request.url));
+      }
       const redirectResponse = NextResponse.redirect(new URL("/feed", request.url));
-      if (setCookie) {
-        redirectResponse.headers.set("set-cookie", setCookie);
+      for (const cookie of setCookies) {
+        redirectResponse.headers.append("Set-Cookie", cookie);
       }
       return redirectResponse;
     }
