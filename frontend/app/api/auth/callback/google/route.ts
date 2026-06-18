@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
     );
 
     if (response.ok) {
-      const setCookies = response.headers.getSetCookie();
+      const setCookies =
+        response.headers.getSetCookie?.() ??
+        (response.headers.get("set-cookie")
+          ? [response.headers.get("set-cookie")!]
+          : []);
+
       if (setCookies.length === 0) {
         return NextResponse.redirect(new URL("/login?error=missing_cookie", request.url));
       }
