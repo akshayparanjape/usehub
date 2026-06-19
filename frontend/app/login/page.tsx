@@ -63,7 +63,7 @@ export default function LoginPage() {
           </p>
         )}
 
-        
+        <a
           href={auth.loginUrl("google")}
           className="flex items-center justify-center gap-3 rounded-md border bg-background px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-accent transition-colors"
         >
