@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const backendUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
     const params = new URLSearchParams({ code, state });
     const response = await fetch(
       `${backendUrl}/api/v1/auth/callback/google?${params.toString()}`,
@@ -20,11 +20,9 @@ export async function GET(request: NextRequest) {
     );
 
     if (response.ok) {
+      const rawSetCookie = response.headers.get("set-cookie");
       const setCookies =
-        response.headers.getSetCookie?.() ??
-        (response.headers.get("set-cookie")
-          ? [response.headers.get("set-cookie")!]
-          : []);
+        response.headers.getSetCookie?.() ?? (rawSetCookie ? [rawSetCookie] : []);
 
       if (setCookies.length === 0) {
         return NextResponse.redirect(new URL("/login?error=missing_cookie", request.url));

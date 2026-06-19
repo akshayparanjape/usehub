@@ -56,10 +56,14 @@ function LoginPageContent() {
       <div className="flex flex-col gap-3 w-full max-w-xs">
         {oauthError && (
           <p className="text-xs text-destructive text-center">
-            {oauthError === "no_code" && "Google login failed: missing code/state."}
-            {oauthError === "auth_failed" && "Google login failed. Please try again."}
-            {oauthError === "missing_cookie" && "Login succeeded but session was not set. Please try again."}
-            {oauthError === "server_error" && "A server error occurred. Please try again."}
+            {(
+              {
+                no_code: "Google login failed: missing code/state.",
+                auth_failed: "Google login failed. Please try again.",
+                missing_cookie: "Login succeeded but session was not set. Please try again.",
+                server_error: "A server error occurred. Please try again.",
+              } as const
+            )[oauthError] ?? "Google login failed. Please try again."}
           </p>
         )}
 
