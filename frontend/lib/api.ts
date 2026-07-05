@@ -92,7 +92,8 @@ export const caseStudies = {
     request<CaseStudyList[]>(
       `/case-studies?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`,
     ),
-  get: (id: string) => request<CaseStudy>(`/case-studies/${id}`),
+  get: (id: string, headers?: HeadersInit) =>
+    request<CaseStudy>(`/case-studies/${id}`, { headers }),
   create: (data: CaseStudyCreate) =>
     request<CaseStudy>("/case-studies", {
       method: "POST",
@@ -107,9 +108,10 @@ export const caseStudies = {
     request<CaseStudy>(`/case-studies/${id}/publish`, { method: "POST" }),
   delete: (id: string) =>
     request<void>(`/case-studies/${id}`, { method: "DELETE" }),
-  byUser: (handle: string, limit = 20, cursor?: string) =>
+  byUser: (handle: string, limit = 20, cursor?: string, headers?: HeadersInit) =>
     request<CaseStudyList[]>(
       `/users/${handle}/case-studies?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`,
+      { headers },
     ),
 };
 

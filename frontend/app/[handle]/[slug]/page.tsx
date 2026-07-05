@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { caseStudies as csApi } from "@/lib/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,12 +18,13 @@ interface Props {
 // In production we'd add a GET /users/{handle}/case-studies/{slug} endpoint.
 export default async function CaseStudyPage({ params }: Props) {
   const { handle, slug } = await params;
+  const cookieHeader = (await cookies()).toString();
 
-  const list = await csApi.byUser(handle).catch(() => []);
+  const list = await csApi.byUser(handle, 20, undefined, { Cookie: cookieHeader }).catch(() => []);
   const listItem = list.find((cs) => cs.slug === slug);
   if (!listItem) notFound();
 
-  const cs = await csApi.get(listItem.id).catch(() => null);
+  const cs = await csApi.get(listItem.id, { Cookie: cookieHeader }).catch(() => null);
   if (!cs) notFound();
 
   const content = cs.content;
