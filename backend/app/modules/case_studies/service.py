@@ -85,7 +85,7 @@ async def create_case_study(db: AsyncSession, author: User, data: CaseStudyCreat
             "case_study.published", {"case_study_id": case_study.id, "author_id": author.id}
         )
 
-    await db.commit()
+    await db.flush()
     result = await db.execute(
         select(CaseStudy)
         .where(CaseStudy.id == case_study.id)
@@ -145,7 +145,7 @@ async def update_case_study(
         for tag in tags:
             db.add(CaseStudyTag(id=new_uuid(), case_study_id=case_study.id, tag_id=tag.id))
 
-    await db.commit()
+    await db.flush()
     result = await db.execute(
         select(CaseStudy)
         .where(CaseStudy.id == case_study.id)
