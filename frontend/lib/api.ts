@@ -23,6 +23,7 @@ async function request<T>(
   const res = await fetch(`${API_BASE}/api/v1${path}`, {
     ...options,
     credentials: "include",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
@@ -63,7 +64,8 @@ export const auth = {
 // ── Users ─────────────────────────────────────────────────────────────────────
 
 export const users = {
-  getByHandle: (handle: string) => request<UserPublic>(`/users/${handle}`),
+  getByHandle: (handle: string, headers?: HeadersInit) =>
+    request<UserPublic>(`/users/${handle}`, { headers }),
   updateMe: (data: Partial<ProfileUpdate>) =>
     request<UserPublic>("/users/me", {
       method: "PATCH",

@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { caseStudies as csApi, users as usersApi } from "@/lib/api";
@@ -5,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CaseStudyCard } from "@/components/case-study-card";
+import { FollowButton } from "@/components/follow-button";
 import { CalendarDays, Globe, MapPin } from "lucide-react";
 
 interface Props {
@@ -16,7 +18,11 @@ export default async function ProfilePage({ params }: Props) {
 
   let user;
   try {
-    user = await usersApi.getByHandle(handle);
+    const cookieStore = await cookies();
+
+    user = await usersApi.getByHandle(handle, {
+      Cookie: cookieStore.toString(),
+    });
   } catch {
     notFound();
   }
@@ -43,6 +49,10 @@ export default async function ProfilePage({ params }: Props) {
               <h1 className="text-xl font-bold">{user.name}</h1>
               <p className="text-muted-foreground text-sm">@{user.handle}</p>
             </div>
+            <FollowButton
+              handle={user.handle}
+              initialIsFollowing={user.is_following}
+            />
           </div>
 
           {profile?.bio && (
