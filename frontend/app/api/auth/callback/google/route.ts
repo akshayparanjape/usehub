@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL("/login?error=missing_cookie", request.url));
       }
       const redirectResponse = NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_API_URL!.replace(/\/$/, "")}/feed`
+        new URL("/feed", request.url)
       );
       for (const cookie of setCookies) {
         redirectResponse.headers.append("Set-Cookie", cookie);

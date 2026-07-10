@@ -23,7 +23,7 @@ async function request<T>(
   const res = await fetch(`${API_BASE}/api/v1${path}`, {
     ...options,
     credentials: "include",
-    cache: "no-store",
+    cache: options.cache ?? "no-store",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,

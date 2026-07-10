@@ -11,7 +11,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const oauthError = searchParams.get("error");
-  const isDev = true;
+  const isDev = process.env.NODE_ENV === "development";
 
   const [username, setUsername] = useState("max");
   const [password, setPassword] = useState("");

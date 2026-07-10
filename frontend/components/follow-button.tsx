@@ -33,7 +33,7 @@ export function FollowButton({
         setFollowing(true);
       }
 
-      router.refresh();   // <-- add this
+      router.refresh();
     } catch (err) {
       console.error(err);
     } finally {
