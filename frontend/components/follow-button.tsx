@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 import { users } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +16,11 @@ export function FollowButton({
   initialIsFollowing,
 }: Props) {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  if (!authLoading && user?.handle === handle) {
+    return null;
+  }
 
   const [following, setFollowing] = useState(initialIsFollowing);
   const [loading, setLoading] = useState(false);
@@ -35,7 +41,16 @@ export function FollowButton({
 
       router.refresh();
     } catch (err) {
-      console.error(err);
+      const status =
+        typeof err === "object" && err && "status" in err
+          ? (err as any).status
+          : null;
+
+      if (status === 401) {
+        router.push("/login");
+      } else {
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
