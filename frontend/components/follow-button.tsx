@@ -18,12 +18,12 @@ export function FollowButton({
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
+  const [following, setFollowing] = useState(initialIsFollowing);
+  const [loading, setLoading] = useState(false);
+
   if (!authLoading && user?.handle === handle) {
     return null;
   }
-
-  const [following, setFollowing] = useState(initialIsFollowing);
-  const [loading, setLoading] = useState(false);
 
   const toggleFollow = async () => {
     if (loading) return;
@@ -42,8 +42,10 @@ export function FollowButton({
       router.refresh();
     } catch (err) {
       const status =
-        typeof err === "object" && err && "status" in err
-          ? (err as any).status
+        typeof err === "object" &&
+        err !== null &&
+        "status" in err
+          ? (err as { status?: number }).status
           : null;
 
       if (status === 401) {
