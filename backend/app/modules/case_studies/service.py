@@ -156,6 +156,7 @@ async def update_case_study(
     )
     return result.scalar_one()
 
+
 async def get_case_study(
     db: AsyncSession, case_study_id: str, viewer_id: str | None = None
 ) -> CaseStudy | None:
