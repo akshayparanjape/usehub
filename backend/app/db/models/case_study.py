@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
     ForeignKey,
     Index,
@@ -25,10 +26,6 @@ class Tag(Base):
 
 class CaseStudy(Base, TimestampMixin):
     __tablename__ = "case_studies"
-    __table_args__ = (
-        Index("ix_case_studies_author_published", "author_id", "published_at"),
-        Index("ix_case_studies_visibility_published", "visibility", "published_at"),
-    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     author_id: Mapped[str] = mapped_column(
@@ -41,7 +38,10 @@ class CaseStudy(Base, TimestampMixin):
     ai_platform: Mapped[str | None] = mapped_column(String(100), nullable=True)
     # public | unlisted | private
     visibility: Mapped[str] = mapped_column(String(20), default="private", nullable=False)
+    is_draft: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     current_version_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    views_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     likes_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     applause_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     aha_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -54,6 +54,8 @@ class CaseStudy(Base, TimestampMixin):
         UniqueConstraint("author_id", "slug", name="uq_case_study_author_slug"),
         Index("ix_case_studies_author_published", "author_id", "published_at"),
         Index("ix_case_studies_visibility_published", "visibility", "published_at"),
+        Index("ix_case_studies_author_draft", "author_id", "is_draft"),
+        Index("ix_case_studies_author_pinned", "author_id", "is_pinned"),
     )
 
     author: Mapped["User"] = relationship("User")  # noqa: F821
@@ -78,12 +80,17 @@ class CaseStudyVersion(Base):
         index=True,
     )
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    edited_by_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     # { prompt, iterations: [{input, output, notes}], final_output, notes }
     content: Mapped[dict] = mapped_column(JSONB, nullable=False)
     change_message: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     case_study: Mapped["CaseStudy"] = relationship("CaseStudy", back_populates="versions")
+    edited_by: Mapped["User | None"] = relationship("User")  # noqa: F821
 
 
 class CaseStudyTag(Base):

@@ -1,24 +1,26 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { caseStudies as csApi } from "@/lib/api";
+import { caseStudies as csApi, users as usersApi } from "@/lib/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ReactionBar } from "@/components/reaction-bar";
 import { Comments } from "@/components/comments";
+import { FollowButton } from "@/components/follow-button";
+import { CaseStudyHeaderActions } from "@/components/case-study-header-actions";
 import { formatDistanceToNow } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 
 interface Props {
   params: Promise<{ handle: string; slug: string }>;
 }
 
-// Note: We look up by handle/slug by listing user's case studies.
-// In production we'd add a GET /users/{handle}/case-studies/{slug} endpoint.
 export default async function CaseStudyPage({ params }: Props) {
   const { handle, slug } = await params;
   const cookieHeader = (await cookies()).toString();
+
+  const authorUser = await usersApi.getByHandle(handle, { Cookie: cookieHeader }).catch(() => null);
 
   const list = await csApi.byUser(handle, 20, undefined, { Cookie: cookieHeader }).catch(() => []);
   const listItem = list.find((cs) => cs.slug === slug);
@@ -31,37 +33,71 @@ export default async function CaseStudyPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl space-y-8">
+      {cs.has_reports && (
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-900 dark:text-rose-200 animate-in fade-in duration-200">
+          <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0" />
+          <div className="text-sm">
+            <strong className="font-semibold block">⚠️ Under Moderation Review</strong>
+            <span>This case study has received community reports and is currently being reviewed by moderators.</span>
+          </div>
+        </div>
+      )}
+
+      {cs.is_draft && (
+        <div className="flex items-center justify-between p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30">
+              Draft
+            </Badge>
+            <span className="text-sm font-medium">This case study is private to you and not visible in public feed.</span>
+          </div>
+          <Link href={`/edit/${cs.id}`} className="text-sm font-semibold hover:underline">
+            Edit Draft &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link
-            href={`/${cs.author.handle}`}
-            className="flex items-center gap-2 hover:text-foreground transition-colors"
-          >
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={cs.author.avatar_url ?? undefined} />
-              <AvatarFallback className="text-xs">
-                {cs.author.name[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            {cs.author.name}
-          </Link>
-          <span>·</span>
-          <span>
-            {cs.published_at
-              ? formatDistanceToNow(cs.published_at)
-              : "Draft"}
-          </span>
-          {cs.ai_model && (
-            <>
-              <span>·</span>
-              <span className="flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5" />
-                {cs.ai_model}
-                {cs.ai_platform && ` · ${cs.ai_platform}`}
-              </span>
-            </>
-          )}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Link
+              href={`/${cs.author.handle}`}
+              className="flex items-center gap-2 hover:text-foreground font-semibold text-foreground transition-colors"
+            >
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={cs.author.avatar_url ?? undefined} />
+                <AvatarFallback className="text-xs">
+                  {cs.author.name[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {cs.author.name}
+            </Link>
+            <span>·</span>
+            <span>
+              {cs.published_at
+                ? formatDistanceToNow(cs.published_at)
+                : "Draft"}
+            </span>
+            {cs.ai_model && (
+              <>
+                <span>·</span>
+                <span className="flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                  {cs.ai_model}
+                  {cs.ai_platform && ` · ${cs.ai_platform}`}
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <FollowButton
+              handle={cs.author.handle}
+              initialIsFollowing={authorUser?.is_following ?? false}
+            />
+            <CaseStudyHeaderActions caseStudy={cs} />
+          </div>
         </div>
 
         <h1 className="text-3xl font-bold leading-tight">{cs.title}</h1>

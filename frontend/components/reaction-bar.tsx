@@ -13,6 +13,12 @@ const REACTIONS = [
   { type: "aha", emoji: "💡", label: "Aha!" },
 ] as const;
 
+const COUNT_KEY_MAP: Record<string, keyof ReactionCounts> = {
+  like: "likes_count",
+  applause: "applause_count",
+  aha: "aha_count",
+};
+
 interface Props {
   caseStudyId: string;
   initialCounts?: ReactionCounts;
@@ -45,14 +51,15 @@ export function ReactionBar({ caseStudyId, initialCounts }: Props) {
     }
     setLoading(type);
     const hasIt = counts.user_reactions.includes(type);
-    const key = `${type}s_count` as keyof ReactionCounts;
+    const key = COUNT_KEY_MAP[type];
+    if (!key) return;
 
     // Optimistic update
     setCounts((prev) => ({
       ...prev,
       [key]: hasIt
-        ? Math.max(0, (prev[key] as number) - 1)
-        : (prev[key] as number) + 1,
+        ? Math.max(0, ((prev[key] as number) || 0) - 1)
+        : ((prev[key] as number) || 0) + 1,
       user_reactions: hasIt
         ? prev.user_reactions.filter((r) => r !== type)
         : [...prev.user_reactions, type],
@@ -69,8 +76,8 @@ export function ReactionBar({ caseStudyId, initialCounts }: Props) {
       setCounts((prev) => ({
         ...prev,
         [key]: hasIt
-          ? (prev[key] as number) + 1
-          : Math.max(0, (prev[key] as number) - 1),
+          ? ((prev[key] as number) || 0) + 1
+          : Math.max(0, ((prev[key] as number) || 0) - 1),
         user_reactions: hasIt
           ? [...prev.user_reactions, type]
           : prev.user_reactions.filter((r) => r !== type),
@@ -82,8 +89,8 @@ export function ReactionBar({ caseStudyId, initialCounts }: Props) {
   }
 
   const getCount = (type: string) => {
-    const key = `${type}s_count` as keyof ReactionCounts;
-    return counts[key] as number;
+    const key = COUNT_KEY_MAP[type];
+    return key ? ((counts[key] as number) || 0) : 0;
   };
 
   return (

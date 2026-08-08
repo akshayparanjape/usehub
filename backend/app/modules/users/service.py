@@ -82,15 +82,38 @@ async def update_profile(db: AsyncSession, user: User, data: ProfileUpdateIn) ->
     if data.name is not None:
         user.name = data.name
 
-    profile = user.profile
+    prof_res = await db.execute(
+        select(Profile)
+        .where(Profile.user_id == user.id)
+        .options(
+            selectinload(Profile.tools).selectinload(UserTool.tool),
+            selectinload(Profile.projects),
+        )
+    )
+    profile = prof_res.scalar_one_or_none()
     if profile is None:
         profile = Profile(user_id=user.id)
         db.add(profile)
 
-    for field in ("bio", "ai_since", "location", "website", "twitter", "github_username"):
+    for field in (
+        "bio",
+        "ai_since",
+        "location",
+        "website",
+        "twitter",
+        "github_username",
+        "github_url",
+        "linkedin_url",
+        "portfolio_url",
+        "skills",
+        "tech_stack",
+    ):
         val = getattr(data, field, None)
         if val is not None:
             setattr(profile, field, val)
+
+    if data.experience is not None:
+        profile.experience = [item.model_dump() for item in data.experience]
 
     if data.tool_ids is not None or data.custom_tools is not None:
         await db.execute(delete(UserTool).where(UserTool.user_id == user.id))
@@ -108,7 +131,37 @@ async def update_profile(db: AsyncSession, user: User, data: ProfileUpdateIn) ->
                 )
 
     await db.flush()
-    return user
+
+    res = await db.execute(
+        select(User)
+        .where(User.id == user.id)
+        .options(
+            selectinload(User.profile).selectinload(Profile.tools).selectinload(UserTool.tool),
+            selectinload(User.profile).selectinload(Profile.projects),
+        )
+    )
+    return res.scalar_one()
+
+
+def calculate_completion_percentage(user: User) -> int:
+    score = 0
+    if user.avatar_url:
+        score += 15
+    p = user.profile
+    if p:
+        if p.bio and p.bio.strip():
+            score += 15
+        if p.location or p.website:
+            score += 10
+        if p.skills and len(p.skills) > 0:
+            score += 20
+        if p.tech_stack and len(p.tech_stack) > 0:
+            score += 15
+        if p.github_url or p.linkedin_url or p.portfolio_url or p.twitter or p.github_username:
+            score += 15
+        if p.experience and len(p.experience) > 0:
+            score += 10
+    return min(score, 100)
 
 
 async def get_followers(

@@ -50,6 +50,7 @@ class CaseStudyCreateIn(BaseModel):
     ai_model: str | None = None
     ai_platform: str | None = None
     visibility: str = "private"
+    is_draft: bool = True
     content: CaseStudyContentIn
     tags: list[str] = []
     change_message: str | None = None
@@ -82,6 +83,7 @@ class CaseStudyUpdateIn(BaseModel):
     ai_model: str | None = None
     ai_platform: str | None = None
     visibility: str | None = None
+    is_draft: bool | None = None
     content: CaseStudyContentIn | None = None
     tags: list[str] | None = None
     change_message: str | None = None
@@ -109,6 +111,10 @@ class CaseStudyOut(BaseModel):
     ai_model: str | None = None
     ai_platform: str | None = None
     visibility: str
+    is_draft: bool
+    is_pinned: bool = False
+    has_reports: bool = False
+    views_count: int = 0
     content: dict | None = None
     tags: list[TagOut] = []
     likes_count: int
@@ -129,6 +135,10 @@ class CaseStudyListOut(BaseModel):
     summary: str | None = None
     ai_model: str | None = None
     visibility: str
+    is_draft: bool
+    is_pinned: bool = False
+    has_reports: bool = False
+    views_count: int = 0
     tags: list[TagOut] = []
     likes_count: int
     applause_count: int
@@ -136,3 +146,67 @@ class CaseStudyListOut(BaseModel):
     comments_count: int
     published_at: datetime | None = None
     created_at: datetime
+
+
+class CaseStudyVersionOut(BaseModel):
+    id: str
+    version_number: int
+    title: str | None = None
+    change_message: str | None = None
+    created_at: datetime
+    edited_by: AuthorOut | None = None
+
+
+class CaseStudyVersionDetailOut(CaseStudyVersionOut):
+    content: dict
+
+
+class RecentlyViewedOut(BaseModel):
+    id: str
+    case_study: CaseStudyListOut
+    viewed_at: datetime
+
+
+class ReportCreateIn(BaseModel):
+    target_type: str
+    target_id: str
+    reason: str
+    details: str | None = None
+
+    @field_validator("target_type")
+    @classmethod
+    def valid_target_type(cls, v: str) -> str:
+        if v not in ("case_study", "comment", "user"):
+            raise ValueError("Invalid target type")
+        return v
+
+    @field_validator("reason")
+    @classmethod
+    def valid_reason(cls, v: str) -> str:
+        if v not in ("spam", "inappropriate", "harassment", "copyright", "other"):
+            raise ValueError("Invalid reason")
+        return v
+
+
+class ReportOut(BaseModel):
+    id: str
+    reporter: AuthorOut
+    target_type: str
+    target_id: str
+    reason: str
+    details: str | None = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ReportUpdateIn(BaseModel):
+    status: str  # pending | reviewed | dismissed | resolved
+
+    @field_validator("status")
+    @classmethod
+    def valid_status(cls, v: str) -> str:
+        if v not in ("pending", "reviewed", "dismissed", "resolved"):
+            raise ValueError("Invalid status")
+        return v
+

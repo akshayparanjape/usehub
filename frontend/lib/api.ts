@@ -94,6 +94,10 @@ export const caseStudies = {
     request<CaseStudyList[]>(
       `/case-studies?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`,
     ),
+  myDrafts: (cursor?: string, limit = 20) =>
+    request<CaseStudyList[]>(
+      `/case-studies/drafts/me?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`,
+    ),
   get: (id: string, headers?: HeadersInit) =>
     request<CaseStudy>(`/case-studies/${id}`, { headers }),
   create: (data: CaseStudyCreate) =>
@@ -108,6 +112,10 @@ export const caseStudies = {
     }),
   publish: (id: string) =>
     request<CaseStudy>(`/case-studies/${id}/publish`, { method: "POST" }),
+  pin: (id: string) =>
+    request<CaseStudy>(`/case-studies/${id}/pin`, { method: "POST" }),
+  unpin: (id: string) =>
+    request<CaseStudy>(`/case-studies/${id}/unpin`, { method: "POST" }),
   delete: (id: string) =>
     request<void>(`/case-studies/${id}`, { method: "DELETE" }),
   byUser: (handle: string, limit = 20, cursor?: string, headers?: HeadersInit) =>
@@ -115,6 +123,16 @@ export const caseStudies = {
       `/users/${handle}/case-studies?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`,
       { headers },
     ),
+  trackView: (id: string) =>
+    request<void>(`/case-studies/${id}/view`, { method: "POST" }),
+  recentlyViewed: (limit = 10) =>
+    request<RecentlyViewedItem[]>(`/case-studies/recently-viewed/me?limit=${limit}`),
+  versions: (id: string) =>
+    request<CaseStudyVersion[]>(`/case-studies/${id}/versions`),
+  versionDetail: (id: string, versionId: string) =>
+    request<CaseStudyVersionDetail>(`/case-studies/${id}/versions/${versionId}`),
+  restoreVersion: (id: string, versionId: string) =>
+    request<CaseStudy>(`/case-studies/${id}/versions/${versionId}/restore`, { method: "POST" }),
 };
 
 // ── Engagement ────────────────────────────────────────────────────────────────
@@ -153,11 +171,33 @@ export const feed = {
     request<CaseStudyList[]>(
       `/feed?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`,
     ),
-  discover: (limit = 20) => request<CaseStudyList[]>(`/discover?limit=${limit}`),
+  discover: (limit = 20, timeframe = "week") =>
+    request<CaseStudyList[]>(`/discover?limit=${limit}&timeframe=${timeframe}`),
   search: (q: string, type = "all", limit = 20, offset = 0) =>
     request<SearchResults>(
       `/search?q=${encodeURIComponent(q)}&type=${type}&limit=${limit}&offset=${offset}`,
     ),
+  searchSuggestions: (q: string) =>
+    request<SearchSuggestions>(`/search/suggestions?q=${encodeURIComponent(q)}`),
+};
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+export const reports = {
+  create: (data: ReportCreate) =>
+    request<Report>("/reports", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  list: (status?: string, targetType?: string, limit = 20, offset = 0) =>
+    request<Report[]>(
+      `/reports?limit=${limit}&offset=${offset}${status ? `&status=${status}` : ""}${targetType ? `&target_type=${targetType}` : ""}`,
+    ),
+  updateStatus: (id: string, status: string) =>
+    request<Report>(`/reports/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
 };
 
 // ── Notifications ─────────────────────────────────────────────────────────────
@@ -211,6 +251,15 @@ export interface Project {
   description: string | null;
 }
 
+export interface ExperienceItem {
+  company?: string;
+  role?: string;
+  start_date?: string;
+  end_date?: string;
+  current?: boolean;
+  description?: string;
+}
+
 export interface Profile {
   bio: string | null;
   ai_since: string | null;
@@ -218,6 +267,13 @@ export interface Profile {
   website: string | null;
   twitter: string | null;
   github_username: string | null;
+  github_url: string | null;
+  linkedin_url: string | null;
+  portfolio_url: string | null;
+  skills: string[];
+  tech_stack: string[];
+  experience: ExperienceItem[];
+  completion_percentage: number;
   tools: UserTool[];
   projects: Project[];
 }
@@ -235,6 +291,12 @@ export interface ProfileUpdate {
   website: string;
   twitter: string;
   github_username: string;
+  github_url: string;
+  linkedin_url: string;
+  portfolio_url: string;
+  skills: string[];
+  tech_stack: string[];
+  experience: ExperienceItem[];
   tool_ids: string[];
   custom_tools: string[];
   avatar_url: string;
@@ -259,6 +321,7 @@ export interface CaseStudyCreate {
   ai_model?: string;
   ai_platform?: string;
   visibility: "public" | "unlisted" | "private";
+  is_draft?: boolean;
   content: CaseStudyContent;
   tags?: string[];
   change_message?: string;
@@ -285,6 +348,10 @@ export interface CaseStudyList {
   summary: string | null;
   ai_model: string | null;
   visibility: string;
+  is_draft: boolean;
+  is_pinned: boolean;
+  has_reports?: boolean;
+  views_count: number;
   tags: Tag[];
   likes_count: number;
   applause_count: number;
@@ -299,6 +366,50 @@ export interface CaseStudy extends CaseStudyList {
   content: CaseStudyContent | null;
   current_version_id: string | null;
   updated_at: string;
+}
+
+export interface CaseStudyVersion {
+  id: string;
+  version_number: number;
+  title: string | null;
+  change_message: string | null;
+  created_at: string;
+  edited_by: Author | null;
+}
+
+export interface CaseStudyVersionDetail extends CaseStudyVersion {
+  content: CaseStudyContent;
+}
+
+export interface RecentlyViewedItem {
+  id: string;
+  case_study: CaseStudyList;
+  viewed_at: string;
+}
+
+export interface ReportCreate {
+  target_type: "case_study" | "comment" | "user";
+  target_id: string;
+  reason: "spam" | "inappropriate" | "harassment" | "copyright" | "other";
+  details?: string;
+}
+
+export interface Report {
+  id: string;
+  reporter: Author;
+  target_type: string;
+  target_id: string;
+  reason: string;
+  details: string | null;
+  status: "pending" | "reviewed" | "dismissed" | "resolved";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SearchSuggestions {
+  tags: string[];
+  users: { handle: string; name: string }[];
+  case_studies: { id: string; title: string; slug: string; author_handle: string }[];
 }
 
 export interface ReactionCounts {
@@ -328,4 +439,6 @@ export interface Notification {
 export interface SearchResults {
   case_studies?: CaseStudyList[];
   users?: UserMinimal[];
+  tags?: Tag[];
 }
+

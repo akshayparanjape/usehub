@@ -4,18 +4,26 @@ import { useEffect, useState } from "react";
 import { feed as feedApi, type CaseStudyList, type SearchResults } from "@/lib/api";
 import { CaseStudyCard } from "@/components/case-study-card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Flame, Search } from "lucide-react";
+
+type Timeframe = "today" | "week" | "month" | "all";
 
 export default function DiscoverPage() {
   const [trending, setTrending] = useState<CaseStudyList[]>([]);
+  const [timeframe, setTimeframe] = useState<Timeframe>("week");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    feedApi.discover().then(setTrending).finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    feedApi
+      .discover(20, timeframe)
+      .then(setTrending)
+      .finally(() => setLoading(false));
+  }, [timeframe]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -36,12 +44,22 @@ export default function DiscoverPage() {
 
   const displayItems = results?.case_studies ?? trending;
 
+  const timeframeOptions: { label: string; value: Timeframe }[] = [
+    { label: "Today", value: "today" },
+    { label: "This Week", value: "week" },
+    { label: "This Month", value: "month" },
+    { label: "All Time", value: "all" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Discover</h1>
+        <div className="flex items-center gap-2">
+          <Flame className="h-6 w-6 text-amber-500 fill-amber-500/20" />
+          <h1 className="text-2xl font-bold">Discover</h1>
+        </div>
         <p className="text-muted-foreground text-sm">
-          Trending AI case studies from the community
+          Trending AI case studies ranked by community interaction
         </p>
       </div>
 
@@ -54,6 +72,23 @@ export default function DiscoverPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
+
+      {!query && (
+        <div className="flex items-center gap-2 border-b pb-3">
+          <span className="text-xs text-muted-foreground font-medium mr-1">Timeframe:</span>
+          {timeframeOptions.map((opt) => (
+            <Button
+              key={opt.value}
+              variant={timeframe === opt.value ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setTimeframe(opt.value)}
+              className="text-xs h-7 rounded-full px-3"
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {results?.users && results.users.length > 0 && (
         <div className="space-y-2">
@@ -81,17 +116,17 @@ export default function DiscoverPage() {
         </div>
       ) : displayItems.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          {query ? "No case studies found" : "No trending case studies yet"}
+          {query ? "No case studies found" : "No trending case studies found for this timeframe"}
         </div>
       ) : (
         <div className="space-y-4">
           {!query && (
-            <h2 className="text-sm font-medium text-muted-foreground">
-              Trending this week
+            <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+              <span>Top {timeframeOptions.find((t) => t.value === timeframe)?.label} Case Studies</span>
             </h2>
           )}
-          {displayItems.map((cs) => (
-            <CaseStudyCard key={cs.id} cs={cs} />
+          {displayItems.map((cs, idx) => (
+            <CaseStudyCard key={cs.id} cs={cs} rank={!query ? idx + 1 : undefined} />
           ))}
         </div>
       )}

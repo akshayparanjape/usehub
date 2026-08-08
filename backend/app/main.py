@@ -21,6 +21,7 @@ from app.modules.feed.router import router as feed_router
 from app.modules.media.router import router as media_router
 from app.modules.notifications.consumer import run_consumer
 from app.modules.notifications.router import router as notifications_router
+from app.modules.reports.router import router as reports_router
 from app.modules.search.router import router as search_router
 from app.modules.users.router import router as users_router
 
@@ -114,6 +115,7 @@ app.include_router(feed_router, prefix=API_PREFIX)
 app.include_router(search_router, prefix=API_PREFIX)
 app.include_router(notifications_router, prefix=API_PREFIX)
 app.include_router(media_router, prefix=API_PREFIX)
+app.include_router(reports_router, prefix=API_PREFIX)
 
 
 @app.get("/api/v1/health")

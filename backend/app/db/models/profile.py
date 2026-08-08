@@ -1,6 +1,7 @@
 from datetime import date
 
 from sqlalchemy import Date, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, new_uuid
@@ -18,6 +19,12 @@ class Profile(Base, TimestampMixin):
     website: Mapped[str | None] = mapped_column(String(255), nullable=True)
     twitter: Mapped[str | None] = mapped_column(String(100), nullable=True)
     github_username: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    github_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    portfolio_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    skills: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    tech_stack: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    experience: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="profile")  # noqa: F821
     tools: Mapped[list["UserTool"]] = relationship(

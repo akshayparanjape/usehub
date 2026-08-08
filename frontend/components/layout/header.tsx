@@ -13,8 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SearchBar } from "@/components/search-bar";
 import { NotificationBell } from "@/components/notification-bell";
-import { BookOpen, Compass, LayoutDashboard, LogOut, Plus, Settings, User } from "lucide-react";
+import { BookOpen, Clock, Compass, FileText, LayoutDashboard, LogOut, Plus, Settings, User } from "lucide-react";
 
 export function Header() {
   const { user, loading, refresh } = useAuth();
@@ -28,23 +29,33 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-      <div className="container mx-auto flex h-14 items-center justify-between px-4">
+      <div className="container mx-auto flex h-14 items-center justify-between gap-4 px-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
             <BookOpen className="h-5 w-5 text-primary" />
             UseHub
           </Link>
-          <nav className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+          <nav className="hidden md:flex items-center gap-4 text-sm text-muted-foreground shrink-0">
             <Link href="/discover" className="hover:text-foreground transition-colors flex items-center gap-1">
               <Compass className="h-4 w-4" />
               Discover
             </Link>
             {user && (
-              <Link href="/feed" className="hover:text-foreground transition-colors">
-                Feed
-              </Link>
+              <>
+                <Link href="/feed" className="hover:text-foreground transition-colors">
+                  Feed
+                </Link>
+                <Link href="/drafts" className="hover:text-foreground transition-colors">
+                  My Drafts
+                </Link>
+              </>
             )}
           </nav>
+        </div>
+
+        {/* Center Search Bar */}
+        <div className="flex-1 max-w-sm mx-2">
+          <SearchBar />
         </div>
 
         <div className="flex items-center gap-2">
@@ -79,6 +90,18 @@ export function Header() {
                     <Link href="/dashboard">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/drafts">
+                      <FileText className="mr-2 h-4 w-4" />
+                      My Drafts
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/recently-viewed">
+                      <Clock className="mr-2 h-4 w-4" />
+                      Recently Viewed
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

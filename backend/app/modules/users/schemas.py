@@ -22,6 +22,13 @@ class ProjectOut(BaseModel):
     description: str | None = None
 
 
+class ExperienceItem(BaseModel):
+    title: str
+    company: str
+    duration: str | None = None
+    description: str | None = None
+
+
 class ProfileOut(BaseModel):
     bio: str | None = None
     ai_since: date | None = None
@@ -29,6 +36,13 @@ class ProfileOut(BaseModel):
     website: str | None = None
     twitter: str | None = None
     github_username: str | None = None
+    github_url: str | None = None
+    linkedin_url: str | None = None
+    portfolio_url: str | None = None
+    skills: list[str] = []
+    tech_stack: list[str] = []
+    experience: list[ExperienceItem] = []
+    completion_percentage: int = 0
     tools: list[UserToolOut] = []
     projects: list[ProjectOut] = []
 
@@ -52,6 +66,12 @@ class ProfileUpdateIn(BaseModel):
     website: str | None = None
     twitter: str | None = None
     github_username: str | None = None
+    github_url: str | None = None
+    linkedin_url: str | None = None
+    portfolio_url: str | None = None
+    skills: list[str] | None = None
+    tech_stack: list[str] | None = None
+    experience: list[ExperienceItem] | None = None
     tool_ids: list[str] | None = None
     custom_tools: list[str] | None = None
 

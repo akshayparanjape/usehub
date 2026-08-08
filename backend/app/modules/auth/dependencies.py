@@ -3,8 +3,10 @@
 from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config import get_settings
+from app.db.models.profile import Profile, UserTool
 from app.db.models.user import User
 from app.db.redis import get_redis_client
 from app.db.session import get_db
@@ -27,7 +29,12 @@ async def get_current_user(
 
     user_id = session_data.get("user_id")
     result = await db.execute(
-        select(User).where(User.id == user_id, User.is_active == True)  # noqa: E712
+        select(User)
+        .where(User.id == user_id, User.is_active == True)  # noqa: E712
+        .options(
+            selectinload(User.profile).selectinload(Profile.tools).selectinload(UserTool.tool),
+            selectinload(User.profile).selectinload(Profile.projects),
+        )
     )
     user = result.scalar_one_or_none()
     if not user:
