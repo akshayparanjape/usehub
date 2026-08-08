@@ -35,7 +35,8 @@ export default function DraftsPage() {
 
   useEffect(() => {
     if (user) {
-      loadDrafts();
+      const timer = setTimeout(() => {loadDrafts();}, 0);
+      return () => clearTimeout(timer);
     }
   }, [user]);
 

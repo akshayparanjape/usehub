@@ -31,21 +31,18 @@ export function EditHistoryModal({
 
   useEffect(() => {
     if (isOpen && caseStudyId) {
-      setLoading(true);
-      setError(null);
-      caseStudies
-        .versions(caseStudyId)
-        .then((data) => {
-          setVersions(data);
-          if (data.length > 0) {
-            setSelectedVersionId(data[0].id);
-          }
-        })
-        .catch((err) => {
-          setError(err.message || "Failed to load history");
-        })
-        .finally(() => setLoading(false));
-    }
+      const timer = setTimeout(() => {
+        setLoading(true);
+        setError(null);
+        caseStudies
+          .versions(caseStudyId)
+          .then(setVersions)
+          .catch((err) => 
+            setError(err.message || "Failed to load history")
+	  )
+	  .finally(() => setLoading(false));}, 0);
+      return () => clearTimeout(timer);
+     }
   }, [isOpen, caseStudyId]);
 
   useEffect(() => {
@@ -68,8 +65,8 @@ export function EditHistoryModal({
       await caseStudies.restoreVersion(caseStudyId, versionId);
       if (onRestored) onRestored();
       onClose();
-    } catch (err: any) {
-      alert(err.message || "Failed to restore version");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to restore version");
     } finally {
       setRestoring(false);
     }

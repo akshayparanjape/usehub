@@ -48,8 +48,8 @@ export function CaseStudyHeaderActions({ caseStudy: initialCaseStudy }: CaseStud
         setCs((prev) => ({ ...prev, is_pinned: true }));
         toast.success("Pinned to top of profile!");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update pin state");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update pin state");
     } finally {
       setPinning(false);
     }

@@ -4,11 +4,6 @@ GIN index on the tsvector column is created via migration.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-
-from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload

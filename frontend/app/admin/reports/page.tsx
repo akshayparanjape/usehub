@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportItem, reports } from "@/lib/api";
+import { Report, reports } from "@/lib/api";
 import { formatDistanceToNow } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Flag, Shield, XCircle } from "lucide-react";
+import { CheckCircle, Flag, Shield } from "lucide-react";
 
 export default function AdminReportsPage() {
-  const [items, setItems] = useState<ReportItem[]>([]);
+  const [items, setItems] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -16,14 +16,15 @@ export default function AdminReportsPage() {
   const fetchReports = () => {
     setLoading(true);
     reports
-      .list(statusFilter === "all" ? undefined : statusFilter, 50, 0)
+      .list(statusFilter === "all" ? undefined : statusFilter, undefined, 50, 0)
       .then(setItems)
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchReports();
+    const timer = setTimeout(() => { fetchReports(); }, 0);
+    return () => clearTimeout(timer);
   }, [statusFilter]);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
@@ -31,8 +32,8 @@ export default function AdminReportsPage() {
     try {
       await reports.updateStatus(id, newStatus);
       fetchReports();
-    } catch (err: any) {
-      alert(err.message || "Failed to update status");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to update status");
     } finally {
       setUpdatingId(null);
     }
@@ -116,7 +117,7 @@ export default function AdminReportsPage() {
                 </div>
                 {item.details && (
                   <p className="text-xs text-foreground/90 bg-muted/50 p-2.5 rounded-lg font-mono">
-                    "{item.details}"
+                    &quot;{item.details}&quot;
                   </p>
                 )}
               </div>

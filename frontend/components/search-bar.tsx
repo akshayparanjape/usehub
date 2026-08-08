@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SearchSuggestions, feed } from "@/lib/api";
 import { Clock, Hash, Search, User as UserIcon, FileText, X, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export function SearchBar() {
+function SearchBarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQ = searchParams?.get("q") || "";
@@ -25,7 +25,8 @@ export function SearchBar() {
     try {
       const stored = localStorage.getItem("recent_searches");
       if (stored) {
-        setRecentSearches(JSON.parse(stored));
+	const parsed = JSON.parse(stored);
+        setTimeout(() => setRecentSearches(parsed), 0);
       }
     } catch {
       // Ignore
@@ -35,7 +36,7 @@ export function SearchBar() {
   // Fetch search suggestions
   useEffect(() => {
     if (!query.trim()) {
-      setSuggestions(null);
+      setTimeout(() => setSuggestions(null), 0);
       return;
     }
 
@@ -260,7 +261,7 @@ export function SearchBar() {
                 onClick={() => handleSearch()}
                 className="p-2.5 text-center text-xs font-semibold text-indigo-500 hover:bg-indigo-500/10 cursor-pointer transition-colors flex items-center justify-center gap-1.5"
               >
-                <span>Search for "{query.trim()}"</span>
+                <span>Search for &quot;{query.trim()}&quot;</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </div>
             )}
@@ -268,5 +269,12 @@ export function SearchBar() {
         </div>
       )}
     </div>
+  );
+}
+export function SearchBar() {
+  return (
+    <Suspense fallback={null}>
+      <SearchBarContent />
+    </Suspense>
   );
 }

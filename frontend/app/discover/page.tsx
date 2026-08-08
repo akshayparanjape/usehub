@@ -18,11 +18,12 @@ export default function DiscoverPage() {
   const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    const timer = setTimeout(() => { setLoading(true);
     feedApi
       .discover(20, timeframe)
       .then(setTrending)
-      .finally(() => setLoading(false));
+      .finally(() => setLoading(false));}, 0);
+      return () => clearTimeout(timer);
   }, [timeframe]);
 
   useEffect(() => {

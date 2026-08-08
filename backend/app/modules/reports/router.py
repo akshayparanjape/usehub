@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.base import new_uuid
+from app.db.models.case_study import CaseStudy
 from app.db.models.engagement import Report
+from app.db.models.notification import Notification
 from app.db.models.user import User
 from app.db.session import get_db
 from app.modules.auth.dependencies import get_current_user
@@ -16,9 +18,6 @@ from app.modules.case_studies.schemas import (
     ReportOut,
     ReportUpdateIn,
 )
-
-from app.db.models.case_study import CaseStudy
-from app.db.models.notification import Notification
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 

@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.case_study import CaseStudy
+from app.db.models.engagement import Report
 from app.db.models.user import User
 from app.db.session import get_db
 from app.modules.auth.dependencies import get_current_user, get_optional_user
@@ -19,10 +21,6 @@ from app.modules.case_studies.schemas import (
 )
 
 router = APIRouter(prefix="/case-studies", tags=["case-studies"])
-
-
-from sqlalchemy import select
-from app.db.models.engagement import Report
 
 
 def _cs_to_list_out(cs: CaseStudy) -> CaseStudyListOut:
@@ -337,7 +335,7 @@ async def restore_case_study_version(
     try:
         updated_cs = await service.restore_version(db, cs, version_id, current_user)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
     return await _cs_to_full_out(updated_cs, db)
 

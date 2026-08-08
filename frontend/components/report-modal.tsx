@@ -45,8 +45,8 @@ export function ReportModal({
         setSubmitted(false);
         onClose();
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || "Failed to submit report. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to submit report. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -71,7 +71,7 @@ export function ReportModal({
           <div>
             <h3 className="font-semibold text-lg leading-tight">Report {targetLabel}</h3>
             {targetTitle && (
-              <p className="text-xs text-muted-foreground line-clamp-1">"{targetTitle}"</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">&quot;{targetTitle}&quot;</p>
             )}
           </div>
         </div>
@@ -101,7 +101,7 @@ export function ReportModal({
               </label>
               <select
                 value={reason}
-                onChange={(e: any) => setReason(e.target.value)}
+                onChange={(e) => setReason(e.target.value as typeof reason)}
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30"
               >
                 <option value="spam">Spam or misleading</option>

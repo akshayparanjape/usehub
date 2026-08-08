@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CaseStudyCard } from "@/components/case-study-card";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Hash, Search, User as UserIcon, FileText, Frown } from "lucide-react";
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const query = searchParams?.get("q") || "";
   const initialType = searchParams?.get("type") || "all";
@@ -22,17 +22,20 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (!query) {
-      setResults(null);
-      return;
+      const timer = setTimeout(() => setResults(null), 0);
+      return () => clearTimeout(timer);
     }
 
-    setLoading(true);
-    setError(null);
-    feed
+    const timer = setTimeout(() => {
+      setLoading(true);
+      setError(null);
+
+      feed
       .search(query, activeTab, 30, 0)
       .then((data) => setResults(data))
       .catch((err) => setError(err.message || "Failed to load search results"))
-      .finally(() => setLoading(false));
+      .finally(() => setLoading(false));}, 0);
+    return () => clearTimeout(timer);
   }, [query, activeTab]);
 
   if (!query) {
@@ -59,7 +62,7 @@ export default function SearchPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <span>Results for</span>
-          <span className="text-indigo-500 font-mono">"{query}"</span>
+          <span className="text-indigo-500 font-mono">&quot;{query}&quot;</span>
         </h1>
         <p className="text-xs text-muted-foreground">
           Found {totalResults} result{totalResults !== 1 ? "s" : ""}
@@ -96,7 +99,7 @@ export default function SearchPage() {
       {/* Results Content */}
       {loading ? (
         <div className="py-12 text-center text-sm text-muted-foreground">
-          Searching for "{query}"...
+          Searching for &quot;{query}&quot;...
         </div>
       ) : error ? (
         <div className="py-12 text-center text-sm text-destructive">{error}</div>
@@ -171,5 +174,12 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading search...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
