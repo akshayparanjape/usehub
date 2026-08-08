@@ -98,16 +98,20 @@ async def get_trending(
     if interval_clause is not None:
         query = query.where(interval_clause)
 
-    query = query.options(
-        selectinload(CaseStudy.author),
-        selectinload(CaseStudy.tags).selectinload(CaseStudyTag.tag),
-    ).order_by(
-        text(
-            "(case_studies.likes_count * 3 + case_studies.applause_count * 2 + "
-            "case_studies.aha_count * 2 + case_studies.comments_count * 5 + "
-            "case_studies.views_count * 1) DESC, case_studies.published_at DESC"
+    query = (
+        query.options(
+            selectinload(CaseStudy.author),
+            selectinload(CaseStudy.tags).selectinload(CaseStudyTag.tag),
         )
-    ).limit(50)
+        .order_by(
+            text(
+                "(case_studies.likes_count * 3 + case_studies.applause_count * 2 + "
+                "case_studies.aha_count * 2 + case_studies.comments_count * 5 + "
+                "case_studies.views_count * 1) DESC, case_studies.published_at DESC"
+            )
+        )
+        .limit(50)
+    )
 
     result = await db.execute(query)
     items = list(result.scalars())

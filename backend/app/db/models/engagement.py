@@ -128,4 +128,3 @@ class Report(Base):
     )
 
     reporter: Mapped["User"] = relationship("User")  # noqa: F821
-

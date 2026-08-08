@@ -338,4 +338,3 @@ async def restore_case_study_version(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
     return await _cs_to_full_out(updated_cs, db)
-

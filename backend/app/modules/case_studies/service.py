@@ -140,7 +140,11 @@ async def update_case_study(
         )
         last = result.scalar_one_or_none()
         current_num = last.version_number if last else 0
-        content_dict = data.content.model_dump() if data.content is not None else (last.content if last else {})
+        content_dict = (
+            data.content.model_dump()
+            if data.content is not None
+            else (last.content if last else {})
+        )
         version = CaseStudyVersion(
             id=new_uuid(),
             case_study_id=case_study.id,
@@ -171,7 +175,6 @@ async def update_case_study(
         )
     )
     return result.scalar_one()
-
 
 
 async def get_case_study(
@@ -291,7 +294,9 @@ async def soft_delete(db: AsyncSession, case_study: CaseStudy) -> None:
 
 async def pin_case_study(db: AsyncSession, case_study: CaseStudy) -> CaseStudy:
     await db.execute(
-        text("UPDATE case_studies SET is_pinned = False WHERE author_id = :author_id AND is_pinned = True"),
+        text(
+            "UPDATE case_studies SET is_pinned = False WHERE author_id = :author_id AND is_pinned = True"
+        ),
         {"author_id": case_study.author_id},
     )
     case_study.is_pinned = True
@@ -428,10 +433,11 @@ async def get_recently_viewed(
         .where(RecentlyViewed.user_id == user_id)
         .options(
             selectinload(RecentlyViewed.case_study).selectinload(CaseStudy.author),
-            selectinload(RecentlyViewed.case_study).selectinload(CaseStudy.tags).selectinload(CaseStudyTag.tag),
+            selectinload(RecentlyViewed.case_study)
+            .selectinload(CaseStudy.tags)
+            .selectinload(CaseStudyTag.tag),
         )
         .order_by(RecentlyViewed.viewed_at.desc())
         .limit(limit)
     )
     return list(result.scalars())
-

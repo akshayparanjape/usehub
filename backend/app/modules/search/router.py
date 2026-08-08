@@ -99,9 +99,7 @@ async def suggestions(
     q: str = Query(..., min_length=1, max_length=100),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    tag_res = await db.execute(
-        select(Tag).where(Tag.name.ilike(f"%{q}%")).limit(5)
-    )
+    tag_res = await db.execute(select(Tag).where(Tag.name.ilike(f"%{q}%")).limit(5))
     tags = list(tag_res.scalars())
 
     user_res = await db.execute(
@@ -129,6 +127,8 @@ async def suggestions(
     return {
         "tags": [t.name for t in tags],
         "users": [{"handle": u.handle, "name": u.name} for u in users],
-        "case_studies": [{"id": cs.id, "title": cs.title, "slug": cs.slug, "author_handle": cs.author_id} for cs in case_studies],
+        "case_studies": [
+            {"id": cs.id, "title": cs.title, "slug": cs.slug, "author_handle": cs.author_id}
+            for cs in case_studies
+        ],
     }
-

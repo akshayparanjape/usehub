@@ -209,4 +209,3 @@ class ReportUpdateIn(BaseModel):
         if v not in ("pending", "reviewed", "dismissed", "resolved"):
             raise ValueError("Invalid status")
         return v
-
