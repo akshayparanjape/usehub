@@ -19,7 +19,10 @@ function LoginPageContent() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) router.replace("/feed");
+    if (!loading && user) {
+      router.refresh();
+      router.replace("/feed");
+    }
   }, [user, loading, router]);
 
   async function handleDevLogin(e: React.FormEvent) {
@@ -29,6 +32,7 @@ function LoginPageContent() {
     try {
       await auth.devLogin(username, password);
       await refresh();
+      router.refresh();
       router.replace("/feed");
     } catch (err) {
       if (err instanceof ApiError) {

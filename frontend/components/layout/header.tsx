@@ -24,6 +24,7 @@ export function Header() {
   async function handleLogout() {
     await auth.logout();
     await refresh();
+    router.refresh();
     router.push("/");
   }
 
