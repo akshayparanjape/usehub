@@ -55,14 +55,7 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-4">
           {items.map((cs) => (
-            <div key={cs.id} className="relative">
-              <div className="absolute top-3 right-3 z-10">
-                <Badge variant={cs.visibility === "public" ? "default" : "secondary"}>
-                  {cs.visibility}
-                </Badge>
-              </div>
-              <CaseStudyCard cs={cs} />
-            </div>
+            <CaseStudyCard key={cs.id} cs={cs} showVisibility={true} />
           ))}
         </div>
       )}

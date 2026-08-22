@@ -1,71 +1,109 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { caseStudies as csApi } from "@/lib/api";
+import { caseStudies as csApi, users as usersApi } from "@/lib/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ReactionBar } from "@/components/reaction-bar";
 import { Comments } from "@/components/comments";
+import { FollowButton } from "@/components/follow-button";
+import { CaseStudyHeaderActions } from "@/components/case-study-header-actions";
 import { formatDistanceToNow } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 
 interface Props {
   params: Promise<{ handle: string; slug: string }>;
 }
 
-// Note: We look up by handle/slug by listing user's case studies.
-// In production we'd add a GET /users/{handle}/case-studies/{slug} endpoint.
 export default async function CaseStudyPage({ params }: Props) {
   const { handle, slug } = await params;
+  const cookieHeader = (await cookies()).toString();
 
-  const list = await csApi.byUser(handle).catch(() => []);
+  const authorUser = await usersApi.getByHandle(handle, { Cookie: cookieHeader }).catch(() => null);
+
+  const list = await csApi.byUser(handle, 20, undefined, { Cookie: cookieHeader }).catch(() => []);
   const listItem = list.find((cs) => cs.slug === slug);
   if (!listItem) notFound();
 
-  const cs = await csApi.get(listItem.id).catch(() => null);
+  const cs = await csApi.get(listItem.id, { Cookie: cookieHeader }).catch(() => null);
   if (!cs) notFound();
 
   const content = cs.content;
 
   return (
     <div className="max-w-3xl space-y-8">
+      {cs.has_reports && (
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-900 dark:text-rose-200 animate-in fade-in duration-200">
+          <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0" />
+          <div className="text-sm">
+            <strong className="font-semibold block">⚠️ Under Moderation Review</strong>
+            <span>This case study has received community reports and is currently being reviewed by moderators.</span>
+          </div>
+        </div>
+      )}
+
+      {cs.is_draft && (
+        <div className="flex items-center justify-between p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30">
+              Draft
+            </Badge>
+            <span className="text-sm font-medium">This case study is private to you and not visible in public feed.</span>
+          </div>
+          <Link href={`/edit/${cs.id}`} className="text-sm font-semibold hover:underline">
+            Edit Draft &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link
-            href={`/${cs.author.handle}`}
-            className="flex items-center gap-2 hover:text-foreground transition-colors"
-          >
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={cs.author.avatar_url ?? undefined} />
-              <AvatarFallback className="text-xs">
-                {cs.author.name[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            {cs.author.name}
-          </Link>
-          <span>·</span>
-          <span>
-            {cs.published_at
-              ? formatDistanceToNow(cs.published_at)
-              : "Draft"}
-          </span>
-          {cs.ai_model && (
-            <>
-              <span>·</span>
-              <span className="flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5" />
-                {cs.ai_model}
-                {cs.ai_platform && ` · ${cs.ai_platform}`}
-              </span>
-            </>
-          )}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+            <Link
+              href={`/${cs.author.handle}`}
+              className="flex items-center gap-2 hover:text-foreground font-semibold text-foreground transition-colors"
+            >
+              <Avatar className="h-6 w-6 sm:h-7 sm:w-7">
+                <AvatarImage src={cs.author.avatar_url ?? undefined} />
+                <AvatarFallback className="text-xs">
+                  {cs.author.name[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {cs.author.name}
+            </Link>
+            <span>·</span>
+            <span>
+              {cs.published_at
+                ? formatDistanceToNow(cs.published_at)
+                : "Draft"}
+            </span>
+            {cs.ai_model && (
+              <>
+                <span>·</span>
+                <span className="flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                  {cs.ai_model}
+                  {cs.ai_platform && ` · ${cs.ai_platform}`}
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <FollowButton
+              handle={cs.author.handle}
+              initialIsFollowing={authorUser?.is_following ?? false}
+            />
+            <CaseStudyHeaderActions caseStudy={cs} />
+          </div>
         </div>
 
-        <h1 className="text-3xl font-bold leading-tight">{cs.title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-balance">{cs.title}</h1>
 
         {cs.summary && (
-          <p className="text-muted-foreground text-lg leading-relaxed">
+          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed text-balance">
             {cs.summary}
           </p>
         )}
@@ -88,7 +126,7 @@ export default async function CaseStudyPage({ params }: Props) {
         <div className="space-y-8">
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Prompt</h2>
-            <div className="rounded-lg bg-muted p-4 font-mono text-sm whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-lg bg-muted p-3.5 sm:p-4 font-mono text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words overflow-x-auto">
               {content.prompt}
             </div>
           </section>
@@ -108,22 +146,22 @@ export default async function CaseStudyPage({ params }: Props) {
                       Iteration {idx + 1}
                     </div>
                     <div className="divide-y">
-                      <div className="p-4 space-y-1">
+                      <div className="p-3.5 sm:p-4 space-y-1">
                         <p className="text-xs font-medium text-muted-foreground">Input</p>
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words">
                           {iter.input}
                         </p>
                       </div>
-                      <div className="p-4 space-y-1 bg-muted/20">
+                      <div className="p-3.5 sm:p-4 space-y-1 bg-muted/20">
                         <p className="text-xs font-medium text-muted-foreground">Output</p>
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words">
                           {iter.output}
                         </p>
                       </div>
                       {iter.notes && (
-                        <div className="p-4 space-y-1">
+                        <div className="p-3.5 sm:p-4 space-y-1">
                           <p className="text-xs font-medium text-muted-foreground">Notes</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             {iter.notes}
                           </p>
                         </div>
@@ -137,7 +175,7 @@ export default async function CaseStudyPage({ params }: Props) {
 
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Final Output</h2>
-            <div className="rounded-lg border p-4 text-sm whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-lg border p-3.5 sm:p-4 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words overflow-x-auto">
               {content.final_output}
             </div>
           </section>

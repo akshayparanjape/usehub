@@ -145,6 +145,7 @@ def _user_to_out(user: User, is_following: bool) -> UserPublicOut:
     if user.profile:
         p = user.profile
         tools = [{"tool": t.tool, "custom_tool_name": t.custom_tool_name} for t in (p.tools or [])]
+        comp_pct = service.calculate_completion_percentage(user)
         profile_out = ProfileOut(
             bio=p.bio,
             ai_since=p.ai_since,
@@ -152,6 +153,13 @@ def _user_to_out(user: User, is_following: bool) -> UserPublicOut:
             website=p.website,
             twitter=p.twitter,
             github_username=p.github_username,
+            github_url=p.github_url,
+            linkedin_url=p.linkedin_url,
+            portfolio_url=p.portfolio_url,
+            skills=p.skills or [],
+            tech_stack=p.tech_stack or [],
+            experience=p.experience or [],
+            completion_percentage=comp_pct,
             tools=tools,
             projects=[
                 {"id": pr.id, "title": pr.title, "url": pr.url, "description": pr.description}

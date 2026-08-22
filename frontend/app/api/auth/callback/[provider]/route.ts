@@ -21,7 +21,11 @@ function getOrigin(request: NextRequest): string {
   return "http://localhost:3000";
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ provider: string }> }
+) {
+  const { provider } = await params;
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -37,7 +41,7 @@ export async function GET(request: NextRequest) {
     const backendUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
     const queryParams = new URLSearchParams({ code, state });
     const response = await fetch(
-      `${backendUrl}/api/v1/auth/callback/google?${queryParams.toString()}`,
+      `${backendUrl}/api/v1/auth/callback/${provider}?${queryParams.toString()}`,
       { method: "GET", cache: "no-store" }
     );
 

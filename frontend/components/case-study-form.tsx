@@ -75,6 +75,7 @@ export function CaseStudyForm({ existing }: Props) {
       ai_model: aiModel || undefined,
       ai_platform: aiPlatform || undefined,
       visibility: publishAfter ? "public" : visibility,
+      is_draft: !publishAfter,
       content: {
         prompt,
         iterations: iterations.filter((i) => i.input || i.output),
@@ -96,8 +97,12 @@ export function CaseStudyForm({ existing }: Props) {
         cs = await caseStudies.create(data);
         if (publishAfter) cs = await caseStudies.publish(cs.id);
       }
-      toast.success(publishAfter ? "Published!" : "Saved");
-      router.push(`/${cs.author.handle}/${cs.slug}`);
+      toast.success(publishAfter ? "Published!" : "Draft saved!");
+      if (publishAfter) {
+        router.push(`/${cs.author.handle}/${cs.slug}`);
+      } else {
+        router.push("/drafts");
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
