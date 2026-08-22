@@ -59,13 +59,13 @@ export default async function CaseStudyPage({ params }: Props) {
 
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
             <Link
               href={`/${cs.author.handle}`}
               className="flex items-center gap-2 hover:text-foreground font-semibold text-foreground transition-colors"
             >
-              <Avatar className="h-7 w-7">
+              <Avatar className="h-6 w-6 sm:h-7 sm:w-7">
                 <AvatarImage src={cs.author.avatar_url ?? undefined} />
                 <AvatarFallback className="text-xs">
                   {cs.author.name[0]?.toUpperCase()}
@@ -91,7 +91,7 @@ export default async function CaseStudyPage({ params }: Props) {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <FollowButton
               handle={cs.author.handle}
               initialIsFollowing={authorUser?.is_following ?? false}
@@ -100,10 +100,10 @@ export default async function CaseStudyPage({ params }: Props) {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold leading-tight">{cs.title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-balance">{cs.title}</h1>
 
         {cs.summary && (
-          <p className="text-muted-foreground text-lg leading-relaxed">
+          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed text-balance">
             {cs.summary}
           </p>
         )}
@@ -126,7 +126,7 @@ export default async function CaseStudyPage({ params }: Props) {
         <div className="space-y-8">
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Prompt</h2>
-            <div className="rounded-lg bg-muted p-4 font-mono text-sm whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-lg bg-muted p-3.5 sm:p-4 font-mono text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words overflow-x-auto">
               {content.prompt}
             </div>
           </section>
@@ -146,22 +146,22 @@ export default async function CaseStudyPage({ params }: Props) {
                       Iteration {idx + 1}
                     </div>
                     <div className="divide-y">
-                      <div className="p-4 space-y-1">
+                      <div className="p-3.5 sm:p-4 space-y-1">
                         <p className="text-xs font-medium text-muted-foreground">Input</p>
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words">
                           {iter.input}
                         </p>
                       </div>
-                      <div className="p-4 space-y-1 bg-muted/20">
+                      <div className="p-3.5 sm:p-4 space-y-1 bg-muted/20">
                         <p className="text-xs font-medium text-muted-foreground">Output</p>
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words">
                           {iter.output}
                         </p>
                       </div>
                       {iter.notes && (
-                        <div className="p-4 space-y-1">
+                        <div className="p-3.5 sm:p-4 space-y-1">
                           <p className="text-xs font-medium text-muted-foreground">Notes</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             {iter.notes}
                           </p>
                         </div>
@@ -175,7 +175,7 @@ export default async function CaseStudyPage({ params }: Props) {
 
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Final Output</h2>
-            <div className="rounded-lg border p-4 text-sm whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-lg border p-3.5 sm:p-4 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed break-words overflow-x-auto">
               {content.final_output}
             </div>
           </section>

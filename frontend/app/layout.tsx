@@ -20,10 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} min-h-screen overflow-x-hidden antialiased bg-background text-foreground`}>
         <AuthProvider>
           <Header />
-          <main className="container mx-auto px-4 py-8 max-w-5xl">
+          <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-5xl">
             {children}
           </main>
           <Toaster richColors position="top-right" />

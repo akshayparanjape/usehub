@@ -11,21 +11,22 @@ interface Props {
   rank?: number;
   canPin?: boolean;
   onPinToggle?: (id: string, currentlyPinned: boolean) => void;
+  showVisibility?: boolean;
 }
 
-export function CaseStudyCard({ cs, rank, canPin, onPinToggle }: Props) {
+export function CaseStudyCard({ cs, rank, canPin, onPinToggle, showVisibility }: Props) {
   const totalReactions = cs.likes_count + cs.applause_count + cs.aha_count;
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border bg-card p-5 hover:shadow-sm transition-shadow relative">
+    <article className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:p-5 hover:shadow-xs transition-shadow relative">
       {cs.has_reports && (
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-semibold border border-rose-500/20">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          <span>Under Moderation Review (Reported)</span>
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          <span className="line-clamp-1">Under Moderation Review (Reported)</span>
         </div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
         {rank !== undefined && (
           <span
             className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -41,27 +42,30 @@ export function CaseStudyCard({ cs, rank, canPin, onPinToggle }: Props) {
             #{rank}
           </span>
         )}
-        <Avatar className="h-7 w-7">
-          <AvatarImage src={cs.author.avatar_url ?? undefined} />
-          <AvatarFallback className="text-xs">
-            {cs.author.name[0]?.toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <Link
-          href={`/${cs.author.handle}`}
-          className="text-sm font-medium hover:underline"
-        >
-          {cs.author.name}
-        </Link>
-        <span className="text-xs text-muted-foreground">·</span>
-        <span className="text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Avatar className="h-6 w-6 sm:h-7 sm:w-7 shrink-0">
+            <AvatarImage src={cs.author.avatar_url ?? undefined} />
+            <AvatarFallback className="text-[10px] sm:text-xs">
+              {cs.author.name[0]?.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <Link
+            href={`/${cs.author.handle || cs.author.id}`}
+            className="text-sm font-medium hover:underline text-foreground truncate max-w-[120px] sm:max-w-none"
+          >
+            {cs.author.name}
+          </Link>
+        </div>
+
+        <span>·</span>
+        <span className="shrink-0">
           {cs.published_at ? formatDistanceToNow(cs.published_at) : "Draft"}
         </span>
 
         {cs.is_pinned && (
           <Badge
             variant="secondary"
-            className="text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 font-medium flex items-center gap-1 ml-auto"
+            className="text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 font-medium flex items-center gap-1 shrink-0"
           >
             <Pin className="h-3 w-3 fill-indigo-500/30" />
             Pinned
@@ -71,22 +75,29 @@ export function CaseStudyCard({ cs, rank, canPin, onPinToggle }: Props) {
         {cs.is_draft ? (
           <Badge
             variant="outline"
-            className={`text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-medium ${
-              cs.is_pinned ? "" : "ml-auto"
-            }`}
+            className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-medium shrink-0"
           >
             Draft
           </Badge>
         ) : (
           cs.ai_model && (
             <>
-              <span className="text-xs text-muted-foreground">·</span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
+              <span>·</span>
+              <span className="flex items-center gap-1 shrink-0">
+                <Sparkles className="h-3 w-3 text-indigo-500" />
                 {cs.ai_model}
               </span>
             </>
           )
+        )}
+
+        {showVisibility && cs.visibility && (
+          <Badge
+            variant={cs.visibility === "public" ? "default" : "secondary"}
+            className="text-xs capitalize font-medium shrink-0 ml-auto"
+          >
+            {cs.visibility}
+          </Badge>
         )}
 
         {canPin && onPinToggle && (
@@ -96,7 +107,7 @@ export function CaseStudyCard({ cs, rank, canPin, onPinToggle }: Props) {
             onClick={() => onPinToggle(cs.id, cs.is_pinned)}
             className={`h-7 px-2 text-xs flex items-center gap-1 ${
               cs.is_pinned ? "text-indigo-500 hover:text-indigo-600" : "text-muted-foreground hover:text-foreground"
-            } ${!cs.is_pinned && !cs.is_draft ? "ml-auto" : ""}`}
+            } ${!cs.is_pinned && !cs.is_draft && !showVisibility ? "sm:ml-auto" : ""}`}
             title={cs.is_pinned ? "Unpin from profile" : "Pin to profile"}
           >
             <Pin className="h-3.5 w-3.5" />
@@ -107,7 +118,7 @@ export function CaseStudyCard({ cs, rank, canPin, onPinToggle }: Props) {
 
       <div>
         <Link
-          href={`/${cs.author.handle}/${cs.slug}`}
+          href={`/${cs.author.handle || cs.author.id}/${cs.slug}`}
           className="font-semibold text-base hover:underline leading-snug"
         >
           {cs.title}

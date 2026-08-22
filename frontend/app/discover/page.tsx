@@ -75,15 +75,15 @@ export default function DiscoverPage() {
       </div>
 
       {!query && (
-        <div className="flex items-center gap-2 border-b pb-3">
-          <span className="text-xs text-muted-foreground font-medium mr-1">Timeframe:</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 border-b pb-3 overflow-x-auto no-scrollbar scrollbar-none shrink-0">
+          <span className="text-xs text-muted-foreground font-medium mr-1 shrink-0">Timeframe:</span>
           {timeframeOptions.map((opt) => (
             <Button
               key={opt.value}
               variant={timeframe === opt.value ? "default" : "ghost"}
               size="sm"
               onClick={() => setTimeframe(opt.value)}
-              className="text-xs h-7 rounded-full px-3"
+              className="text-xs h-7 rounded-full px-3 shrink-0"
             >
               {opt.label}
             </Button>

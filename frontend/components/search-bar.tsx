@@ -100,9 +100,9 @@ function SearchBarContent() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-md">
+    <div ref={containerRef} className="relative w-full">
       <div className="relative flex items-center">
-        <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Search className="absolute left-2.5 sm:left-3 h-3.5 sm:h-4 w-3.5 sm:w-4 text-muted-foreground pointer-events-none shrink-0" />
         <input
           type="text"
           value={query}
@@ -113,7 +113,7 @@ function SearchBarContent() {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search Users, Tags, Case Studies..."
-          className="w-full bg-muted/60 hover:bg-muted focus:bg-background border border-transparent focus:border-indigo-500/50 rounded-full pl-9 pr-8 py-1.5 text-xs text-foreground placeholder:text-muted-foreground transition-all outline-none focus:ring-2 focus:ring-indigo-500/20"
+          className="w-full bg-muted/60 hover:bg-muted focus:bg-background border border-transparent focus:border-indigo-500/50 rounded-full pl-8 sm:pl-9 pr-7 sm:pr-8 py-1.5 text-xs text-foreground placeholder:text-muted-foreground transition-all outline-none focus:ring-2 focus:ring-indigo-500/20 truncate"
         />
         {query && (
           <button
@@ -121,7 +121,7 @@ function SearchBarContent() {
               setQuery("");
               setSuggestions(null);
             }}
-            className="absolute right-3 text-muted-foreground hover:text-foreground p-0.5 rounded-full"
+            className="absolute right-2.5 sm:right-3 text-muted-foreground hover:text-foreground p-0.5 rounded-full"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -130,10 +130,10 @@ function SearchBarContent() {
 
       {/* Dropdown Popover */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="fixed left-3 right-3 top-14 sm:absolute sm:top-full sm:left-0 sm:right-auto sm:w-[380px] md:w-[420px] mt-1.5 bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150 max-h-[75vh] sm:max-h-none flex flex-col">
           {/* Quick Filters Header */}
-          <div className="flex items-center gap-1 p-2 bg-muted/40 border-b border-border text-[11px]">
-            <span className="font-semibold text-muted-foreground px-2">Type:</span>
+          <div className="flex items-center gap-1.5 p-2 bg-muted/60 border-b border-border text-[11px] flex-wrap shrink-0">
+            <span className="font-semibold text-muted-foreground px-1">Type:</span>
             {[
               { id: "all", label: "All" },
               { id: "case_study", label: "Case Studies" },
@@ -146,9 +146,9 @@ function SearchBarContent() {
                   setFilterType(t.id);
                   if (query.trim()) handleSearch(query, t.id);
                 }}
-                className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
                   filterType === t.id
-                    ? "bg-indigo-500 text-white"
+                    ? "bg-indigo-600 text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >

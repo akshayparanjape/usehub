@@ -14,7 +14,7 @@ from app.modules.users.schemas import ProfileUpdateIn
 async def get_user_by_handle(db: AsyncSession, handle: str) -> User | None:
     result = await db.execute(
         select(User)
-        .where(User.handle == handle, User.is_active == True)  # noqa: E712
+        .where((User.handle == handle) | (User.id == handle), User.is_active == True)  # noqa: E712
         .options(
             selectinload(User.profile).selectinload(Profile.tools).selectinload(UserTool.tool),
             selectinload(User.profile).selectinload(Profile.projects),
